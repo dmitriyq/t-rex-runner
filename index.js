@@ -665,20 +665,26 @@
          */
         onKeyDown: function (e) {
             // Prevent native page scrolling whilst tapping on mobile.
-            if (IS_MOBILE && this.playing) {
+            if (window.isGameFocused) {
                 e.preventDefault();
-            }
+            } else{
+				if (this.playing) { 
+					this.stop();
+				}
+				return;
+			}
 
             if (e.target != this.detailsButton) {
                 if (!this.crashed && (Runner.keycodes.JUMP[e.keyCode] ||
-                    e.type == Runner.events.TOUCHSTART)) {
-                    if (!this.playing) {
+                    e.type == Runner.events.TOUCHSTART || e.type == Runner.events.CLICK)) {
+                    if (!this.playing && window.isGameFocused) {
                         this.loadSounds();
                         this.playing = true;
                         this.update();
                         if (window.errorPageController) {
                             errorPageController.trackEasterEgg();
-                        }
+						}
+						e.preventDefault();
                     }
                     //  Play sound effect and jump on starting the game for the first time.
                     if (!this.tRex.jumping && !this.tRex.ducking) {
@@ -711,6 +717,14 @@
          * @param {Event} e
          */
         onKeyUp: function (e) {
+			if (window.isGameFocused) {
+                e.preventDefault();
+            } else{
+				if (this.playing) { 
+					this.stop();
+				}
+				return;
+			}
             var keyCode = String(e.keyCode);
             var isjumpKey = Runner.keycodes.JUMP[keyCode] ||
                 e.type == Runner.events.TOUCHEND ||
@@ -730,7 +744,7 @@
                         Runner.keycodes.JUMP[keyCode])) {
                     this.restart();
                 }
-            } else if (this.paused && isjumpKey) {
+            } else if (this.paused && (isjumpKey || this.isLeftClickOnCanvas(e))) {
                 // Reset the jump state
                 this.tRex.reset();
                 this.play();
@@ -2709,7 +2723,15 @@
 
 
 function onDocumentLoad() {
-    new Runner('.interstitial-wrapper');
+	window.Game = new Runner('.interstitial-wrapper');
+	window.isGameFocused = false;
 }
-
+document.body.addEventListener('click', function(e){
+	if (e.target === document.querySelector('canvas.runner-canvas')){
+		window.isGameFocused = true;
+	} else{
+		window.Game.stop();
+		window.isGameFocused = false;
+	}
+});
 document.addEventListener('DOMContentLoaded', onDocumentLoad);
