@@ -121,7 +121,7 @@
         MAX_SPEED: 13,
         MIN_JUMP_HEIGHT: 35,
         MOBILE_SPEED_COEFFICIENT: 1.2,
-        RESOURCE_TEMPLATE_ID: 'audio-resources',
+        RESOURCE_TEMPLATE_ID: 'game-audio-resources',
         SPEED: 6,
         SPEED_DROP_COEFFICIENT: 3
     };
@@ -190,9 +190,9 @@
      * @enum {string}
      */
     Runner.sounds = {
-        BUTTON_PRESS: 'offline-sound-press',
-        HIT: 'offline-sound-hit',
-        SCORE: 'offline-sound-reached'
+        BUTTON_PRESS: 'game-sound-press',
+        HIT: 'game-sound-hit',
+        SCORE: 'game-sound-reached'
     };
 
 
@@ -287,10 +287,10 @@
          */
         loadImages: function () {
             if (IS_HIDPI) {
-                Runner.imageSprite = document.getElementById('offline-resources-2x');
+                Runner.imageSprite = document.getElementById('game-resources-2x');
                 this.spriteDef = Runner.spriteDefinition.HDPI;
             } else {
-                Runner.imageSprite = document.getElementById('offline-resources-1x');
+                Runner.imageSprite = document.getElementById('game-resources-1x');
                 this.spriteDef = Runner.spriteDefinition.LDPI;
             }
 
@@ -2721,17 +2721,44 @@
     };
 })();
 
+(function(e, d, w) {
+	if(!e.composedPath) {
+	  e.composedPath = function() {
+		if (this.path) {
+		  return this.path;
+		} 
+	  var target = this.target;
+  
+	  this.path = [];
+	  while (target.parentNode !== null) {
+		this.path.push(target);
+		target = target.parentNode;
+	  }
+	  this.path.push(d, w);
+	  return this.path;
+	  }
+	}
+  })(Event.prototype, document, window);
 
 function onDocumentLoad() {
 	window.Game = new Runner('.interstitial-wrapper');
 	window.isGameFocused = false;
 }
 document.body.addEventListener('click', function(e){
-	if (e.target === document.querySelector('canvas.runner-canvas')){
+	var selector = document.querySelector('div.game');
+	var path = e.path || (e.composedPath && e.composedPath());
+	if (path.includes(selector)){
 		window.isGameFocused = true;
+		window.Game.play();
 	} else{
 		window.Game.stop();
 		window.isGameFocused = false;
+	}
+	var box = document.getElementById("game-title");
+	if (window.isGameFocused){
+		box.innerText="Click outside to pause";
+	} else{
+		box.innerText="Click to play game";
 	}
 });
 document.addEventListener('DOMContentLoaded', onDocumentLoad);
