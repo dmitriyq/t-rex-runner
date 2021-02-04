@@ -2721,6 +2721,11 @@
     };
 })();
 
+var IS_IOS = /iPad|iPhone|iPod/.test(window.navigator.platform);
+
+/** @const */
+var IS_MOBILE = /Android/.test(window.navigator.userAgent) || IS_IOS;
+
 (function(e, d, w) {
 	if(!e.composedPath) {
 	  e.composedPath = function() {
@@ -2742,13 +2747,15 @@
 
 function onDocumentLoad() {
 	window.Game = new Runner('.interstitial-wrapper');
-	window.isGameFocused = false;
+    window.isGameFocused = false;
+    window.isGameFirstStarted = false;
 }
 document.body.addEventListener('click', function(e){
 	var selector = document.querySelector('div.game');
 	var path = e.path || (e.composedPath && e.composedPath());
 	if (path.includes(selector)){
-		window.isGameFocused = true;
+        window.isGameFocused = true;
+        window.Game.playIntro();
 		window.Game.play();
 	} else{
 		window.Game.stop();
@@ -2756,9 +2763,9 @@ document.body.addEventListener('click', function(e){
 	}
 	var box = document.getElementById("game-title");
 	if (window.isGameFocused){
-		box.innerText="Click outside to pause";
+		box.innerText="Кликни снаружи для выхода";
 	} else{
-		box.innerText="Click to play game";
+		box.innerText="Кликни для старта";
 	}
 });
 document.addEventListener('DOMContentLoaded', onDocumentLoad);
